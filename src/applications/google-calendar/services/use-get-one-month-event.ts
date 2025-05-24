@@ -1,4 +1,5 @@
 // googleCalendarService.ts
+import { getValidAccessToken } from "../lib/googleCalendarService";
 
 export interface itemsInterface {
   created: string;
@@ -34,11 +35,13 @@ export interface CalendarEvent {
   items: itemsInterface[];
 }
 
-const getStoredAccessToken = (): string | null => {
+export const getStoredAccessToken = (): string | null => {
   return sessionStorage.getItem("google_access_token");
 };
 
 export type EventsByDate = Record<string, CalendarEvent[]>;
+
+const calendarApiUrl = import.meta.env.VITE_GOOGLE_CALENDAR_API_URL;
 
 // Get ISO time range for the current month
 const getCurrentMonthTimeRange = () => {
@@ -54,7 +57,7 @@ const getCurrentMonthTimeRange = () => {
 
 // Fetch events from Google Calendar API
 export const fetchMonthlyGoogleEvents = async (): Promise<EventsByDate> => {
-  const accessToken = getStoredAccessToken();
+  const accessToken = await getValidAccessToken();
   if (!accessToken) {
     throw new Error("No access token found. User may not be authenticated.");
   }
@@ -62,7 +65,7 @@ export const fetchMonthlyGoogleEvents = async (): Promise<EventsByDate> => {
   const { timeMin, timeMax } = getCurrentMonthTimeRange();
 
   const response = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
+    `${calendarApiUrl}/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -75,7 +78,6 @@ export const fetchMonthlyGoogleEvents = async (): Promise<EventsByDate> => {
   }
 
   const data: CalendarEvent = await response.json();
-  // console.log(data);
   return groupEventsByDate(data.items as itemsInterface[]);
 };
 

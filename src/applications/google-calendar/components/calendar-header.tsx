@@ -9,13 +9,23 @@ import {
   Clock,
   List,
   Plus,
+  LogOutIcon, 
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useGoogleCalendarContext } from "../lib/GoogleCalendarContext";
 import { useNavigate } from "react-router-dom";
 import { useCalendarSettingsContext } from "../lib/CalendarSettingsContext";
-
-export function CalendarHeader() {
+import {
+  DropdownMenu,
+  DropdownMenuContent, 
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "../lib/AuthContext";
+export default function CalendarHeader() {
   const navigate = useNavigate();
   const {
     navigateNext,
@@ -28,6 +38,7 @@ export function CalendarHeader() {
   } = useGoogleCalendarContext();
   const { is24HourFormat, setIs24HourFormat, setIsEventDialogOpen } =
     useCalendarSettingsContext();
+  const { logout } = useAuth();
 
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -114,6 +125,35 @@ export function CalendarHeader() {
           <Plus className="mr-2 h-4 w-4" />
           Add Event
         </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Avatar>
+              <AvatarImage src="https://github.com/shadcn.png" />
+              <AvatarFallback>JK</AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="max-w-64">
+            <DropdownMenuLabel className="flex items-start gap-3">
+              <div className="flex min-w-0 flex-col">
+                <span className="text-foreground truncate text-sm font-medium">
+                  Jella Kom
+                </span>
+                <span className="text-muted-foreground truncate text-xs font-normal">
+                  jella.komal.stacks@gmail.com
+                </span>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => {
+                logout();
+              }}
+            >
+              <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
+              <span>Logout</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

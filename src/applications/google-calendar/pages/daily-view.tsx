@@ -143,7 +143,7 @@ export default function DailyView() {
           </div>
         )}
 
-        <ScrollWrapper className="h-[calc(100vh-11rem)]">
+        <ScrollWrapper className="h-[calc(100vh-12rwem)]">
           {/* Time grid */}
           <div
             className="grid grid-cols-[120px_1fr] relative pb-10 "

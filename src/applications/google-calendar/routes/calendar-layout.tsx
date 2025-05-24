@@ -1,4 +1,4 @@
-import { CalendarHeader } from "../components/calendar-header";
+import CalendarHeader from "../components/calendar-header";
 import { Outlet, useNavigate } from "react-router-dom";
 import {
   GoogleCalendarProvider,
@@ -13,6 +13,7 @@ import { EventDetailsDialog } from "../components/event-details-dialog";
 import { useContextMenuManager } from "@/ContextMenuManager";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "../lib/AuthContext";
 
 interface ContextMenuItem {
   id: string;
@@ -38,6 +39,8 @@ function CalendarContent() {
   } = useCalendarSettingsContext();
   const { fetchEvents } = useGoogleCalendarContext();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
 
   // Separate effect for initial menu setup
   useEffect(() => {
@@ -271,7 +274,7 @@ function CalendarContent() {
 
   return (
     <div className="px-5 py-5 flex flex-col gap-5 z-20">
-      <CalendarHeader />
+      {isAuthenticated && <CalendarHeader />}
       <Outlet />
       <EventDialog />
       <EventDetailsDialog />

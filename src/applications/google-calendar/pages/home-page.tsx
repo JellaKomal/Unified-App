@@ -1,14 +1,20 @@
 import { cn } from "@/lib/utils";
-import React from "react";
 import { useCalendarSettingsContext } from "../lib/CalendarSettingsContext";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import GoogleLoginButton from "@/components/design-system/GoogleLoginButton";
+import { useAuth } from "../lib/AuthContext";
+import { useEffect, useState } from "react";
 
 function HomePage({ className }: { className?: string }) {
   const { bgOpacity } = useCalendarSettingsContext();
-  const [time, setTime] = React.useState(new Date());
+  const [time, setTime] = useState(new Date());
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
   // Timer to update clock every second
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setInterval(() => {
       setTime(new Date());
     }, 1000);
@@ -43,42 +49,51 @@ function HomePage({ className }: { className?: string }) {
   const Month = date.split(",")[1];
   const Year = date.split(",")[2];
 
-  const location = useLocation();
-  const navigate = useNavigate();
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-[calc(100vh-10rem)] bg-background flex-col items-center justify-center gap-4">
+        <h1 className="text-2xl font-bold">Welcome to Calendar App</h1>
+        <p className="text-muted-foreground">Please sign in to continue</p>
+        <GoogleLoginButton />
+      </div>
+    );
+  }
 
   return (
-    <div
-      className={cn(
-        "fixed inset-0 flex flex-col justify-center items-center pointer-events-none",
-        className,
-        location.pathname === "/calendar" ? "z-20 bg-background" : "-z-1"
-      )}
-      style={{ opacity: location.pathname === "/calendar" ? 1 : bgOpacity }}
-      onClick={() => navigate("/calendar/monthly")}
-    >
-      {/* Time */}
-      <div className="flex justify-center items-center">
-        <div className="flex flex-row flex-wrap justify-center items-center w-full text-[15vw] font-bold text-primary">
-          <span className="px-4 bg-primary text-background">{Hour}</span>
-          <span className="px-2">:</span>
-          <span className="px-4 bg-primary text-background">{Minute}</span>
-          <span className="px-2">:</span>
-          <span className="px-4">{Period}</span>
-          <span className="px-4 bg-primary text-background">{Period2}</span>
-          <span> </span>
+    <div className="">
+      <div
+        className={cn(
+          "fixed inset-0 flex flex-col justify-center items-center",
+          className,
+          location.pathname === "/calendar" ? "z-20 bg-background" : "-z-1"
+        )}
+        style={{ opacity: location.pathname === "/calendar" ? 1 : bgOpacity }}
+        onClick={() => navigate("/calendar/monthly")}
+      >
+        {/* Time */}
+        <div className="flex justify-center items-center">
+          <div className="flex flex-row flex-wrap justify-center items-center w-full text-[15vw] font-bold text-primary">
+            <span className="px-4 bg-primary text-background">{Hour}</span>
+            <span className="px-2">:</span>
+            <span className="px-4 bg-primary text-background">{Minute}</span>
+            <span className="px-2">:</span>
+            <span className="px-4">{Period}</span>
+            <span className="px-4 bg-primary text-background">{Period2}</span>
+            <span> </span>
+          </div>
         </div>
-      </div>
 
-      {/* Date */}
-      <div className="flex justify-center items-center gap-10 w-full text-primary mt-10 text-7xl font-bold">
-        <span>{Day}</span>
-        <span
-          className="bg-primary text-background p-4 cursor-pointer" /* enable selection & click here! */
-          onClick={() => navigate("/calendar/monthly")}
-        >
-          {Month}
-        </span>
-        <span>{Year}</span>
+        {/* Date */}
+        <div className="flex justify-center items-center gap-10 w-full text-primary mt-10 text-7xl font-bold">
+          <span>{Day}</span>
+          <span
+            className="bg-primary text-background p-4 cursor-pointer" /* enable selection & click here! */
+            onClick={() => navigate("/calendar/monthly")}
+          >
+            {Month}
+          </span>
+          <span>{Year}</span>
+        </div>
       </div>
     </div>
   );

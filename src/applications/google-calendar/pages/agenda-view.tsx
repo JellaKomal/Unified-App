@@ -83,7 +83,7 @@ export default function AgendaView() {
           </div>
         ) : (
           <ScrollWrapper
-            className="h-[calc(100vh-7rem)]"
+            className="h-[calc(100vh-8rem)]"
             childrenClassName="flex flex-col gap-2"
           >
             {sortedDates.map((dateKey) => {

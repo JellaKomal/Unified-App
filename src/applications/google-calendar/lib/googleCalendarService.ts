@@ -61,19 +61,82 @@ export const getGoogleAccessToken = (): string | null => {
   return sessionStorage.getItem("google_access_token");
 };
 
-// API fetcher
+const getStoredAccessToken = (): string | null => {
+  return sessionStorage.getItem("google_access_token");
+};
+
+const getStoredRefreshToken = (): string | null => {
+  return sessionStorage.getItem("google_refresh_token");
+};
+
+const getTokenExpiry = (): number => {
+  const expiry = sessionStorage.getItem("token_expiry");
+  return expiry ? parseInt(expiry) : 0;
+};
+
+const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const clientSecret = import.meta.env.VITE_GOOGLE_CLIENT_SECRET;
+const tokenUrl = import.meta.env.VITE_GOOGLE_OAUTH_TOKEN_URL;
+const calendarApiUrl = import.meta.env.VITE_GOOGLE_CALENDAR_API_URL;
+
+const refreshAccessToken = async (): Promise<string> => {
+  const refreshToken = getStoredRefreshToken();
+  if (!refreshToken) {
+    throw new Error("No refresh token found");
+  }
+
+  try {
+    const response = await fetch(tokenUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+        grant_type: "refresh_token",
+      }),
+    });
+
+    const tokens = await response.json();
+    
+    // Update stored tokens
+    sessionStorage.setItem("google_access_token", tokens.access_token);
+    sessionStorage.setItem("token_expiry", (Date.now() + tokens.expires_in * 1000).toString());
+    
+    return tokens.access_token;
+  } catch (error) {
+    console.error("Failed to refresh token:", error);
+    throw error;
+  }
+};
+
+export const getValidAccessToken = async (): Promise<string> => {
+  const accessToken = getStoredAccessToken();
+  const tokenExpiry = getTokenExpiry();
+  
+  // If token is expired or will expire in the next 5 minutes, refresh it
+  if (!accessToken || Date.now() + 300000 >= tokenExpiry) {
+    return await refreshAccessToken();
+  }
+  
+  return accessToken;
+};
+
+// Update the fetchGoogleCalendarEvents function to use the new token management
 export const fetchGoogleCalendarEvents = async (
   startDate: Date,
   endDate: Date
 ): Promise<RawGoogleEvent[]> => {
-  const accessToken = getGoogleAccessToken();
+  const accessToken = await getValidAccessToken();
   if (!accessToken) throw new Error("Google access token not found.");
 
   const timeMin = startDate.toISOString();
   const timeMax = endDate.toISOString();
 
   const response = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
+    `${calendarApiUrl}/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -156,22 +219,15 @@ export interface NewCalendarEvent {
   };
 }
 
-const getStoredAccessToken = (): string | null => {
-  return sessionStorage.getItem("google_access_token");
-};
-
-/**
- * Add a new event to Google Calendar
- * @param event NewCalendarEvent object
- */
+// Update other API functions to use getValidAccessToken
 export const addGoogleCalendarEvent = async (event: NewCalendarEvent) => {
-  const accessToken = getStoredAccessToken();
+  const accessToken = await getValidAccessToken();
   if (!accessToken) {
     throw new Error("No access token found. User may not be authenticated.");
   }
 
   const response = await fetch(
-    "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+    `${calendarApiUrl}/calendars/primary/events`,
     {
       method: "POST",
       headers: {
@@ -199,15 +255,15 @@ export const updateGoogleCalendarEvent = async (
   eventId: string,
   updatedEvent: Partial<NewCalendarEvent>
 ) => {
-  const accessToken = getStoredAccessToken();
+  const accessToken = await getValidAccessToken();
   if (!accessToken) {
     throw new Error("No access token found. User may not be authenticated.");
   }
 
   const response = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
+    `${calendarApiUrl}/calendars/primary/events/${eventId}`,
     {
-      method: "PUT", // Use PUT for full replacement or PATCH for partial
+      method: "PUT",
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
@@ -230,13 +286,13 @@ export const updateGoogleCalendarEvent = async (
 };
 
 export const deleteGoogleCalendarEvent = async (eventId: string) => {
-  const accessToken = getStoredAccessToken(); // From previous step
+  const accessToken = await getValidAccessToken();
   if (!accessToken) {
     throw new Error("No access token found. User may not be authenticated.");
   }
 
   const response = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
+    `${calendarApiUrl}/calendars/primary/events/${eventId}`,
     {
       method: "DELETE",
       headers: {
@@ -254,5 +310,5 @@ export const deleteGoogleCalendarEvent = async (eventId: string) => {
     );
   }
 
-  return true; // Success: 204 No Content
+  return true;
 };

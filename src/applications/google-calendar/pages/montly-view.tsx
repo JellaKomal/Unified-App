@@ -87,7 +87,7 @@ export default function MonthlyView() {
         </div>
         <ScrollWrapper
           childrenClassName="grid grid-cols-7 gap-1 w-full"
-          className="w-full h-[calc(100vh-9rem)]"
+          className="w-full h-[calc(100vh-10rem)]"
         >
           {monthData.weeks.flatMap((week: any) =>
             week.days.map((day: any) => {

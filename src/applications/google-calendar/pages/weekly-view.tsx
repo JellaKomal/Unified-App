@@ -223,7 +223,7 @@ export default function WeeklyView() {
           })}
         </div>
 
-        <ScrollWrapper className="h-[calc(100vh-15rem)]">
+        <ScrollWrapper className="h-[calc(100vh-16rem)]">
           {/* Time grid */}
           <div className="grid grid-cols-8 relative">
             {/* Time labels */}
