@@ -1,0 +1,173 @@
+import { columns } from "../../../components/design-system/table/columns";
+import { DataTable } from "../../../components/design-system/table/data-table";
+
+export default function Dashboard() {
+  const data = [
+    {
+      title: "Elden Ring",
+      platform: "Steam",
+      currentPrice: "$49.99",
+      alertPrice: "$39.99",
+      drop: "20%",
+      lastUpdated: "2025-05-15 14:32",
+    },
+    {
+      title: "God of War: Ragnarok",
+      platform: "PlayStation Store",
+      currentPrice: "$59.99",
+      alertPrice: "$49.99",
+      drop: "16.6%",
+      lastUpdated: "2025-05-16 09:10",
+    },
+    {
+      title: "Cyberpunk 2077",
+      platform: "GOG",
+      currentPrice: "$29.99",
+      alertPrice: "$19.99",
+      drop: "33.3%",
+      lastUpdated: "2025-05-14 22:45",
+    },
+    {
+      title: "Hogwarts Legacy",
+      platform: "Epic Games",
+      currentPrice: "$39.99",
+      alertPrice: "$29.99",
+      drop: "25%",
+      lastUpdated: "2025-05-17 08:20",
+    },
+    {
+      title: "The Last of Us Part I",
+      platform: "Steam",
+      currentPrice: "$59.99",
+      alertPrice: "$44.99",
+      drop: "25%",
+      lastUpdated: "2025-05-16 16:05",
+    },
+    {
+      title: "Elden Ring",
+      platform: "Steam",
+      currentPrice: "$49.99",
+      alertPrice: "$39.99",
+      drop: "20%",
+      lastUpdated: "2025-05-15 14:32",
+    },
+    {
+      title: "God of War: Ragnarok",
+      platform: "PlayStation Store",
+      currentPrice: "$59.99",
+      alertPrice: "$49.99",
+      drop: "16.6%",
+      lastUpdated: "2025-05-16 09:10",
+    },
+    {
+      title: "Cyberpunk 2077",
+      platform: "GOG",
+      currentPrice: "$29.99",
+      alertPrice: "$19.99",
+      drop: "33.3%",
+      lastUpdated: "2025-05-14 22:45",
+    },
+    {
+      title: "Hogwarts Legacy",
+      platform: "Epic Games",
+      currentPrice: "$39.99",
+      alertPrice: "$29.99",
+      drop: "25%",
+      lastUpdated: "2025-05-17 08:20",
+    },
+    {
+      title: "The Last of Us Part I",
+      platform: "Steam",
+      currentPrice: "$59.99",
+      alertPrice: "$44.99",
+      drop: "25%",
+      lastUpdated: "2025-05-16 16:05",
+    },
+    {
+      title: "Elden Ring",
+      platform: "Steam",
+      currentPrice: "$49.99",
+      alertPrice: "$39.99",
+      drop: "20%",
+      lastUpdated: "2025-05-15 14:32",
+    },
+    {
+      title: "God of War: Ragnarok",
+      platform: "PlayStation Store",
+      currentPrice: "$59.99",
+      alertPrice: "$49.99",
+      drop: "16.6%",
+      lastUpdated: "2025-05-16 09:10",
+    },
+    {
+      title: "Cyberpunk 2077",
+      platform: "GOG",
+      currentPrice: "$29.99",
+      alertPrice: "$19.99",
+      drop: "33.3%",
+      lastUpdated: "2025-05-14 22:45",
+    },
+    {
+      title: "Hogwarts Legacy",
+      platform: "Epic Games",
+      currentPrice: "$39.99",
+      alertPrice: "$29.99",
+      drop: "25%",
+      lastUpdated: "2025-05-17 08:20",
+    },
+    {
+      title: "The Last of Us Part I",
+      platform: "Steam",
+      currentPrice: "$59.99",
+      alertPrice: "$44.99",
+      drop: "25%",
+      lastUpdated: "2025-05-16 16:05",
+    },
+    {
+      title: "Elden Ring",
+      platform: "Steam",
+      currentPrice: "$49.99",
+      alertPrice: "$39.99",
+      drop: "20%",
+      lastUpdated: "2025-05-15 14:32",
+    },
+    {
+      title: "God of War: Ragnarok",
+      platform: "PlayStation Store",
+      currentPrice: "$59.99",
+      alertPrice: "$49.99",
+      drop: "16.6%",
+      lastUpdated: "2025-05-16 09:10",
+    },
+    {
+      title: "Cyberpunk 2077",
+      platform: "GOG",
+      currentPrice: "$29.99",
+      alertPrice: "$19.99",
+      drop: "33.3%",
+      lastUpdated: "2025-05-14 22:45",
+    },
+    {
+      title: "Hogwarts Legacy",
+      platform: "Epic Games",
+      currentPrice: "$39.99",
+      alertPrice: "$29.99",
+      drop: "25%",
+      lastUpdated: "2025-05-17 08:20",
+    },
+    {
+      title: "The Last of Us Part I",
+      platform: "Steam",
+      currentPrice: "$59.99",
+      alertPrice: "$44.99",
+      drop: "25%",
+      lastUpdated: "2025-05-16 16:05",
+    },
+  ];
+
+  return (
+    <div className="container mx-auto p-2">
+      <DataTable<typeof data[0], unknown> columns={columns} data={data} />
+    </div>
+  );
+}
