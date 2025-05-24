@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Command } from "cmdk";
-import { ComputerIcon, Currency, DollarSign, Link, Search } from "lucide-react";
+import { CalendarIcon, ComputerIcon, Currency, DollarSign, Link, Search } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 
@@ -30,6 +30,14 @@ export function CommandPalette() {
       icon: <DollarSign className="h-4 w-4" />,
       onSelect: () => navigate("price-tracking-app"),
     },
+    {
+      id: "calendar",
+      name: "Calendar",
+      description: "Calendar",
+      icon: <CalendarIcon className="h-4 w-4" />,
+      onSelect: () => navigate("calendar"),
+    },
+
   ];
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");

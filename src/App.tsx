@@ -4,7 +4,8 @@ import { priceTrackerRoutes } from "./applications/price-tracking-app/routes/rou
 import { bloggingAppRoutes } from "./applications/bloggin-app/routes/routes";
 import Applications from "./applications/applications";
 import GoogleLoginButton from "./components/design-system/GoogleLoginButton";
-import { calendarRoutes } from "./applications/calendar/routes/routes";
+import { googleCalendarRoutes } from "./applications/google-calendar/routes/routes";
+
 function App() {
   return (
     <Routes>
@@ -31,7 +32,7 @@ function App() {
           ))}
         </Route>
       ))}
-      {calendarRoutes.map((route) => (
+      {googleCalendarRoutes.map((route) => (
         <Route key={route.path} path={route.path} element={route.element}>
           {route.children?.map((child) => (
             <Route key={child.path} path={child.path} element={child.element} />
@@ -43,7 +44,11 @@ function App() {
         path="applications"
         element={
           <Applications
-            routes={[...priceTrackerRoutes, ...bloggingAppRoutes]}
+            routes={[
+              ...priceTrackerRoutes,
+              ...bloggingAppRoutes,
+              ...googleCalendarRoutes,
+            ]}
           />
         }
       />

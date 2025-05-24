@@ -74,6 +74,17 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+  --event1: #6c7a89; /* Slate Blue */
+  --event2: #4db6ac; /* Soft Teal */
+  --event3: #d98a8a; /* Dusty Rose */
+  --event4: #d4a373; /* Mustard */
+  --event5: #a3b18a; /* Sage Green */
+  --event6: #b39eb5; /* Lavender */
+  --event7: #f08080; /* Coral */
+  --event8: #9fa8da; /* Light Indigo */
+  --event9: #a9a9a9; /* Warm Gray */
+  --event10: #b2ebf2; /* Pale Cyan */
+  --event11: #ffd8b1; /* Apricot */
 }
 
 .theme-dark {
@@ -108,6 +119,17 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
+  --event1: #82aaff; /* Bright Blue */
+  --event2: #00c49a; /* Vibrant Teal */
+  --event3: #ff6b6b; /* Strong Coral Red */
+  --event4: #ffd93d; /* Warm Yellow */
+  --event5: #6bcb77; /* Fresh Green */
+  --event6: #d39bb6; /* Soft Purple */
+  --event7: #ff9671; /* Peachy Orange */
+  --event8: #70b7ff; /* Light Sky Blue */
+  --event9: #c9d6df; /* Light Gray Blue */
+  --event10: #a2d2ff; /* Pale Blue */
+  --event11: #ffc6ff; /* Light Pink */
 }
 
 .theme-blue {
@@ -615,7 +637,7 @@
     color: var(--background); /* Uses shadcn's primary foreground */
   }
 
- ::-webkit-scrollbar {
+  ::-webkit-scrollbar {
     width: 4px;
     height: 4px;
   }
@@ -637,5 +659,16 @@
   html {
     scrollbar-color: hsl(var(--primary)) hsl(var(--background));
     scrollbar-width: thin;
+  }
+}
+
+@theme inline {
+  --animate-scroll: scroll var(--animation-duration, 40s)
+    var(--animation-direction, forwards) linear infinite;
+
+  @keyframes scroll {
+    to {
+      transform: translate(calc(-50% - 0.5rem));
+    }
   }
 }
