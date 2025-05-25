@@ -14,10 +14,11 @@ import { useContextMenuManager } from "@/ContextMenuManager";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "../lib/AuthContext";
+import type { MenuItemType } from "@/ContextMenuManager";
 
 interface ContextMenuItem {
   id: string;
-  type: string;
+  type: MenuItemType;
   label?: string;
   items?: ContextMenuItem[];
   onClick?: () => void;
@@ -221,7 +222,7 @@ function CalendarContent() {
         dispatch({ type: "REMOVE_ITEM", payload: { id } });
       });
     };
-  }, [dispatch, fetchEvents]);
+  }, []);
 
   // Separate effect for updating menu item styles
   useEffect(() => {
@@ -231,46 +232,81 @@ function CalendarContent() {
     );
 
     if (settingsItem?.items) {
+      const updatedItems = [...settingsItem.items];
+
       // Update time format items
-      const timeFormatSubmenu = settingsItem.items.find(
+      const timeFormatSubmenu = updatedItems.find(
         (item) => item.id === "calendar-settings-general"
       );
       if (timeFormatSubmenu?.items) {
-        timeFormatSubmenu.items[0].className = cn(
-          !is24HourFormat && "bg-accent"
+        const hasTimeFormatChanges = timeFormatSubmenu.items.some(
+          item => (item.id === "calendar-settings-general-12-hour" && item.className !== cn(!is24HourFormat && "bg-accent")) ||
+                 (item.id === "calendar-settings-general-24-hour" && item.className !== cn(is24HourFormat && "bg-accent"))
         );
-        timeFormatSubmenu.items[1].className = cn(
-          is24HourFormat && "bg-accent"
-        );
+        
+        if (hasTimeFormatChanges) {
+          timeFormatSubmenu.items = timeFormatSubmenu.items.map(item => ({
+            ...item,
+            className: item.id === "calendar-settings-general-12-hour" 
+              ? cn(!is24HourFormat && "bg-accent")
+              : cn(is24HourFormat && "bg-accent")
+          }));
+        }
       }
 
       // Update week start items
-      const weekStartSubmenu = settingsItem.items.find(
+      const weekStartSubmenu = updatedItems.find(
         (item) => item.id === "calendar-settings-week-start"
       );
       if (weekStartSubmenu?.items) {
-        weekStartSubmenu.items.forEach((item) => {
-          item.className =
-            item.id === `calendar-settings-week-start-${weekStart}`
+        const hasWeekStartChanges = weekStartSubmenu.items.some(
+          item => item.className !== (item.id === `calendar-settings-week-start-${weekStart}` ? "bg-accent" : "")
+        );
+        
+        if (hasWeekStartChanges) {
+          weekStartSubmenu.items = weekStartSubmenu.items.map(item => ({
+            ...item,
+            className: item.id === `calendar-settings-week-start-${weekStart}`
               ? "bg-accent"
-              : "";
-        });
+              : ""
+          }));
+        }
       }
 
       // Update duration items
-      const durationSubmenu = settingsItem.items.find(
+      const durationSubmenu = updatedItems.find(
         (item) => item.id === "calendar-settings-default-duration"
       );
       if (durationSubmenu?.items) {
-        durationSubmenu.items.forEach((item) => {
-          item.className =
-            item.id === `calendar-settings-default-duration-${defaultDuration}`
+        const hasDurationChanges = durationSubmenu.items.some(
+          item => item.className !== (item.id === `calendar-settings-default-duration-${defaultDuration}` ? "bg-accent" : "")
+        );
+        
+        if (hasDurationChanges) {
+          durationSubmenu.items = durationSubmenu.items.map(item => ({
+            ...item,
+            className: item.id === `calendar-settings-default-duration-${defaultDuration}`
               ? "bg-accent"
-              : "";
+              : ""
+          }));
+        }
+      }
+
+      // Only dispatch if there are actual changes
+      const hasChanges = JSON.stringify(updatedItems) !== JSON.stringify(settingsItem.items);
+      if (hasChanges) {
+        dispatch({
+          type: "ADD_ITEM",
+          payload: {
+            id: "calendar-settings",
+            type: "submenu",
+            label: "Settings",
+            items: updatedItems
+          }
         });
       }
     }
-  }, [is24HourFormat, weekStart, defaultDuration, state]);
+  }, [is24HourFormat, weekStart, defaultDuration, dispatch]);
 
   return (
     <div className="px-5 py-5 flex flex-col gap-5 z-20">

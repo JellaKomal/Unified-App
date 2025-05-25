@@ -124,35 +124,99 @@ export const getValidAccessToken = async (): Promise<string> => {
   return accessToken;
 };
 
-// Update the fetchGoogleCalendarEvents function to use the new token management
+let lastFetchTime = 0;
+const MIN_FETCH_INTERVAL = 1000; // Minimum time between fetches in milliseconds
+const CACHE_DURATION = 5 * 60 * 1000; // Cache duration: 5 minutes
+
+interface CachedEvents {
+  events: RawGoogleEvent[];
+  timestamp: number;
+}
+
 export const fetchGoogleCalendarEvents = async (
   startDate: Date,
   endDate: Date
 ): Promise<RawGoogleEvent[]> => {
+  // Create a cache key based on the date range
+  const cacheKey = `calendar_events_${startDate.toISOString()}_${endDate.toISOString()}`;
+  
+  // Check cache first
+  const cachedData = sessionStorage.getItem(cacheKey);
+  if (cachedData) {
+    try {
+      const { events, timestamp }: CachedEvents = JSON.parse(cachedData);
+      // Return cached data if it's still valid
+      if (Date.now() - timestamp < CACHE_DURATION) {
+        return events;
+      }
+    } catch (e) {
+      console.error("Failed to parse cached events:", e);
+    }
+  }
+
+  // Rate limiting
+  const now = Date.now();
+  if (now - lastFetchTime < MIN_FETCH_INTERVAL) {
+    await new Promise(resolve => setTimeout(resolve, MIN_FETCH_INTERVAL - (now - lastFetchTime)));
+  }
+  lastFetchTime = Date.now();
+
   const accessToken = await getValidAccessToken();
   if (!accessToken) throw new Error("Google access token not found.");
 
+  // Limit the date range to a reasonable period
+  const maxDateRange = 31; // Maximum number of days to fetch
+  const currentDate = new Date();
+  const maxEndDate = new Date(currentDate);
+  maxEndDate.setDate(currentDate.getDate() + maxDateRange);
+
+  // Adjust the end date if it's too far in the future
+  const adjustedEndDate = endDate > maxEndDate ? maxEndDate : endDate;
+
   const timeMin = startDate.toISOString();
-  const timeMax = endDate.toISOString();
+  const timeMax = adjustedEndDate.toISOString();
 
-  const response = await fetch(
-    `${calendarApiUrl}/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to fetch events: ${response.status} - ${errorText}`
+  try {
+    const response = await fetch(
+      `${calendarApiUrl}/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime&maxResults=2500`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
     );
-  }
 
-  const data = await response.json();
-  return data.items as RawGoogleEvent[];
+    if (!response.ok) {
+      if (response.status === 429) {
+        // Too many requests - wait and retry
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        return fetchGoogleCalendarEvents(startDate, endDate);
+      }
+      const errorText = await response.text();
+      throw new Error(
+        `Failed to fetch events: ${response.status} - ${errorText}`
+      );
+    }
+
+    const data = await response.json();
+    const events = data.items as RawGoogleEvent[];
+
+    // Cache the results
+    const cacheData: CachedEvents = {
+      events,
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem(cacheKey, JSON.stringify(cacheData));
+
+    return events;
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('ERR_INSUFFICIENT_RESOURCES')) {
+      // Wait and retry on resource error
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      return fetchGoogleCalendarEvents(startDate, endDate);
+    }
+    throw error;
+  }
 };
 
 // Grouping function with better name

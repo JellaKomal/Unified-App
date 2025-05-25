@@ -7,10 +7,12 @@ export function ScrollWrapper({
   children,
   className,
   childrenClassName,
+  onScroll,
 }: {
   children: React.ReactNode;
   className?: string;
   childrenClassName?: string;
+  onScroll?: (event: React.UIEvent<HTMLDivElement>) => void;
 }) {
   return (
     <div
@@ -18,6 +20,7 @@ export function ScrollWrapper({
         "w-full overflow-y-auto",
         className
       )}
+      onScroll={onScroll}
     >
       <div className={cn("min-h-max", childrenClassName)}>{children}</div>
     </div>

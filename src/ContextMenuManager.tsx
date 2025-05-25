@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer } from "react";
 
-type MenuItemType = "item" | "separator" | "submenu" | "themeSwitcher";
+export type MenuItemType = "item" | "separator" | "submenu" | "themeSwitcher";
 
 interface BaseItem {
   id: string;

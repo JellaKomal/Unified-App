@@ -283,7 +283,7 @@ export default function WeeklyView() {
                     const { top, height } = getEventPosition(event);
                     return (
                       <motion.div
-                        // key={event.id}
+                        key={event.id}
                         initial={{ opacity: 0, x: -5 }}
                         animate={{ opacity: 1, x: 0 }}
                         className={cn(

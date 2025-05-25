@@ -5,6 +5,7 @@ import {
   type ReactNode,
   useMemo,
   useEffect,
+  useCallback,
 } from "react";
 import {
   fetchGoogleCalendarEvents,
@@ -145,15 +146,31 @@ export const GoogleCalendarProvider = ({ children }: Props) => {
     }
   }, [events]);
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     if (!startDate || !endDate) return;
+
+    // Create a cache key based on the date range
+    const cacheKey = `calendarEvents_${startDate.toISOString()}_${endDate.toISOString()}`;
+    
+    // Check if we have cached data for this date range
+    const cachedData = sessionStorage.getItem(cacheKey);
+    if (cachedData) {
+      try {
+        const parsedData = JSON.parse(cachedData);
+        setEvents(parsedData);
+        return;
+      } catch (e) {
+        console.error("Failed to parse cached events:", e);
+      }
+    }
+
     // Get first day of the month
     const startOfMonth = new Date(
       startDate.getFullYear(),
       startDate.getMonth(),
       1
     );
-    const startDay = startOfMonth.getDay(); // 0 (Sun) to 6 (Sat)
+    const startDay = startOfMonth.getDay();
 
     // Move back to the Sunday before the first day of the month
     const startDateToUse = new Date(startOfMonth);
@@ -181,19 +198,15 @@ export const GoogleCalendarProvider = ({ children }: Props) => {
       const grouped = groupEventsByDateKey(rawEvents);
       setEvents(grouped);
 
-      // Store the events for this month after successful fetch
-      const monthKey = `${startDate.getFullYear()}-${startDate.getMonth()}`;
-      sessionStorage.setItem(
-        `calendarEvents_${monthKey}`,
-        JSON.stringify(grouped)
-      );
+      // Cache the events for this date range
+      sessionStorage.setItem(cacheKey, JSON.stringify(grouped));
     } catch (err) {
       setError("Failed to fetch events");
       console.error(err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [startDate, endDate]);
 
   function generateMonthData(year: number, month: number): MonthData {
     const today = new Date();
@@ -304,11 +317,55 @@ export const GoogleCalendarProvider = ({ children }: Props) => {
     );
   }
 
-  const setDateRange = (start: Date, end: Date) => {
+  // Memoize date range calculations
+  const dateRange = useMemo(() => {
+    if (view === "weekly") {
+      const weekDates = getWeekDates(currentDate);
+      return {
+        start: weekDates[0],
+        end: weekDates[6]
+      };
+    } else if (view === "daily") {
+      return {
+        start: currentDate,
+        end: currentDate
+      };
+    } else {
+      // For monthly view, only fetch the current month
+      const startOfMonth = new Date(year, month, 1);
+      const endOfMonth = new Date(year, month + 1, 0);
+      return {
+        start: startOfMonth,
+        end: endOfMonth
+      };
+    }
+  }, [view, currentDate, year, month]);
+
+  // Update date range when it changes
+  useEffect(() => {
+    setStartDate(dateRange.start);
+    setEndDate(dateRange.end);
+  }, [dateRange]);
+
+  // Fetch events when date range changes
+  useEffect(() => {
+    if (startDate && endDate) {
+      // Only fetch if we're viewing the current month or a month within the next 31 days
+      const currentDate = new Date();
+      const maxFutureDate = new Date(currentDate);
+      maxFutureDate.setDate(currentDate.getDate() + 31);
+
+      if (startDate <= maxFutureDate) {
+        fetchEvents();
+      }
+    }
+  }, [startDate, endDate, fetchEvents]);
+
+  const setDateRange = useCallback((start: Date, end: Date) => {
     setStartDate(start);
     setEndDate(end);
     setCurrentDate(start);
-  };
+  }, []);
 
   const refreshEvents = () => {
     fetchEvents();
@@ -339,13 +396,21 @@ export const GoogleCalendarProvider = ({ children }: Props) => {
       const newYear = month > 11 ? year + 1 : year;
       const actualMonth = month > 11 ? 0 : newMonth;
       
-      setMonth(actualMonth);
-      setYear(newYear);
-      
-      // Set date range for the next month
-      const startOfMonth = new Date(newYear, actualMonth, 1);
-      const endOfMonth = new Date(newYear, actualMonth + 1, 0);
-      setDateRange(startOfMonth, endOfMonth);
+      // Check if the new month is within the allowed range
+      const newDate = new Date(newYear, actualMonth, 1);
+      const currentDate = new Date();
+      const maxFutureDate = new Date(currentDate);
+      maxFutureDate.setDate(currentDate.getDate() + 31);
+
+      if (newDate <= maxFutureDate) {
+        setMonth(actualMonth);
+        setYear(newYear);
+        
+        // Set date range for the next month
+        const startOfMonth = new Date(newYear, actualMonth, 1);
+        const endOfMonth = new Date(newYear, actualMonth + 1, 0);
+        setDateRange(startOfMonth, endOfMonth);
+      }
     }
   };
 
@@ -404,22 +469,18 @@ export const GoogleCalendarProvider = ({ children }: Props) => {
   };
 
   // Add effect to update date range when view changes
-  useEffect(() => {
-    if (view === "weekly") {
-      const weekDates = getWeekDates(currentDate);
-      setDateRange(weekDates[0], weekDates[6]);
-    } else if (view === "daily") {
-      setDateRange(currentDate, currentDate);
-    } else {
-      const startOfMonth = new Date(year, month, 1);
-      const endOfMonth = new Date(year, month + 1, 0);
-      setDateRange(startOfMonth, endOfMonth);
-    }
-  }, [view, currentDate, year, month]);
-
-  useEffect(() => {
-    fetchEvents();
-  }, [startDate, endDate]);
+  // useEffect(() => {
+  //   if (view === "weekly") {
+  //     const weekDates = getWeekDates(currentDate);
+  //     setDateRange(weekDates[0], weekDates[6]);
+  //   } else if (view === "daily") {
+  //     setDateRange(currentDate, currentDate);
+  //   } else {
+  //     const startOfMonth = new Date(year, month, 1);
+  //     const endOfMonth = new Date(year, month + 1, 0);
+  //     setDateRange(startOfMonth, endOfMonth);
+  //   }
+  // }, [view, currentDate, year, month]);
 
   return (
     <GoogleCalendarContext.Provider

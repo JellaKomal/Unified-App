@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import GoogleLoginButton from "@/components/design-system/GoogleLoginButton";
 import { useAuth } from "../lib/AuthContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 function HomePage({ className }: { className?: string }) {
   const { bgOpacity } = useCalendarSettingsContext();
@@ -13,18 +13,9 @@ function HomePage({ className }: { className?: string }) {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  // Timer to update clock every second
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  // Format the current time with seconds
-  const formattedTime = time
-    .toLocaleDateString(undefined, {
+  // Memoize formatted time to prevent unnecessary re-renders
+  const formattedTime = useMemo(() => {
+    return time.toLocaleDateString(undefined, {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -36,8 +27,17 @@ function HomePage({ className }: { className?: string }) {
       timeZone: "IST",
       timeZoneName: "short",
       hourCycle: "h23",
-    })
-    .replace(/\//g, "-");
+    }).replace(/\//g, "-");
+  }, [time]);
+
+  // Timer to update clock every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const [date, timeStr] = formattedTime.split(" at ");
   const timeStr2 = timeStr.split("GMT")[0];
