@@ -321,18 +321,31 @@ export const GoogleCalendarProvider = ({ children }: Props) => {
       setCurrentDate(newDate);
       setYear(newDate.getFullYear());
       setMonth(newDate.getMonth());
+      
+      // Set date range for the next week
+      const weekDates = getWeekDates(newDate);
+      setDateRange(weekDates[0], weekDates[6]);
     } else if (view === "daily") {
       const newDate = new Date(currentDate);
       newDate.setDate(currentDate.getDate() + 1);
       setCurrentDate(newDate);
       setYear(newDate.getFullYear());
       setMonth(newDate.getMonth());
+      
+      // Set date range for the next day
+      setDateRange(newDate, newDate);
     } else {
-      setMonth(month + 1);
-      if (month > 11) {
-        setYear(year + 1);
-        setMonth(0);
-      }
+      const newMonth = month + 1;
+      const newYear = month > 11 ? year + 1 : year;
+      const actualMonth = month > 11 ? 0 : newMonth;
+      
+      setMonth(actualMonth);
+      setYear(newYear);
+      
+      // Set date range for the next month
+      const startOfMonth = new Date(newYear, actualMonth, 1);
+      const endOfMonth = new Date(newYear, actualMonth + 1, 0);
+      setDateRange(startOfMonth, endOfMonth);
     }
   };
 
@@ -343,18 +356,31 @@ export const GoogleCalendarProvider = ({ children }: Props) => {
       setCurrentDate(newDate);
       setYear(newDate.getFullYear());
       setMonth(newDate.getMonth());
+      
+      // Set date range for the previous week
+      const weekDates = getWeekDates(newDate);
+      setDateRange(weekDates[0], weekDates[6]);
     } else if (view === "daily") {
       const newDate = new Date(currentDate);
       newDate.setDate(currentDate.getDate() - 1);
       setCurrentDate(newDate);
       setYear(newDate.getFullYear());
       setMonth(newDate.getMonth());
+      
+      // Set date range for the previous day
+      setDateRange(newDate, newDate);
     } else {
-      setMonth(month - 1);
-      if (month < 0) {
-        setYear(year - 1);
-        setMonth(11);
-      }
+      const newMonth = month - 1;
+      const newYear = month < 0 ? year - 1 : year;
+      const actualMonth = month < 0 ? 11 : newMonth;
+      
+      setMonth(actualMonth);
+      setYear(newYear);
+      
+      // Set date range for the previous month
+      const startOfMonth = new Date(newYear, actualMonth, 1);
+      const endOfMonth = new Date(newYear, actualMonth + 1, 0);
+      setDateRange(startOfMonth, endOfMonth);
     }
   };
 
@@ -363,7 +389,33 @@ export const GoogleCalendarProvider = ({ children }: Props) => {
     setCurrentDate(today);
     setYear(today.getFullYear());
     setMonth(today.getMonth());
+    
+    // Set date range based on current view
+    if (view === "weekly") {
+      const weekDates = getWeekDates(today);
+      setDateRange(weekDates[0], weekDates[6]);
+    } else if (view === "daily") {
+      setDateRange(today, today);
+    } else {
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      setDateRange(startOfMonth, endOfMonth);
+    }
   };
+
+  // Add effect to update date range when view changes
+  useEffect(() => {
+    if (view === "weekly") {
+      const weekDates = getWeekDates(currentDate);
+      setDateRange(weekDates[0], weekDates[6]);
+    } else if (view === "daily") {
+      setDateRange(currentDate, currentDate);
+    } else {
+      const startOfMonth = new Date(year, month, 1);
+      const endOfMonth = new Date(year, month + 1, 0);
+      setDateRange(startOfMonth, endOfMonth);
+    }
+  }, [view, currentDate, year, month]);
 
   useEffect(() => {
     fetchEvents();
